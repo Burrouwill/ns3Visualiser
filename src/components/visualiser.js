@@ -8,7 +8,8 @@ function Visualization({ data }) {
   // Render your visualization based on the parsed data
   return (
     <div>
-      {/* Your visualization components go here */}
+      <h2>Visualization</h2>
+      <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
 }
