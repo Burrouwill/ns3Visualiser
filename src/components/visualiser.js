@@ -78,7 +78,7 @@ function Visualization({ data, maxWidth, maxHeight }) {
             .append('circle')
             .attr('cx', centerX + cx)
             .attr('cy', centerY - cy)
-            .attr('r', 10) // Adjust the size of the circles
+            .attr('r', 0.3*gridUnitSize) 
             .attr('fill', nodeColor); // Set the fill color based on the node's ID
       
           // Append a title to the container

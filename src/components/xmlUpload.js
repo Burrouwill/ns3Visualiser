@@ -1,8 +1,27 @@
 import React, { Component } from 'react';
-import { parseXMLToJSON } from '../parser/xmlParser'; // Adjust the import path
-
+import { parseXMLToJSON } from '../parser/xmlParser';
 
 class XmlUpload extends Component {
+  
+  // Used to order logs of different types in terms of time
+  compareTime(a, b) {
+    let timeA, timeB;
+  
+    if (a && a.$ && 'fbTx' in a.$) {
+      timeA = parseFloat(a.$.fbTx);
+    } else if (a && a.$ && 't' in a.$) {
+      timeA = parseFloat(a.$.t);
+    }
+  
+    if (b && b.$ && 'fbTx' in b.$) {
+      timeB = parseFloat(b.$.fbTx);
+    } else if (b && b.$ && 't' in b.$) {
+      timeB = parseFloat(b.$.t);
+    }
+    
+    return timeA - timeB;
+  }
+  
   handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -11,31 +30,36 @@ class XmlUpload extends Component {
         const xmlData = e.target.result;
         try {
           const jsonData = await parseXMLToJSON(xmlData);
-          
-          // Check if the 'anim' object exists
+
           if (jsonData.anim) {
             const animData = jsonData.anim;
-            console.log(animData)
-            // Filter data for setting up nodes
+
+            // Init Data
             const nodesData = {
-              node: animData.node, // More data about nodes
-              nonp2plinkproperties: animData.nonp2plinkproperties, // Node properties
+              node: animData.node,
+              nonp2plinkproperties: animData.nonp2plinkproperties,
             };
-  
-            // Filter data for the simulation
+
+            // Simulation Data
             const simulationData = {
-              wpr: animData.wpr, // Data about packets 
-              nu: animData.nu, // Data about node updates & movement
+              pr: animData.pr,
+              nu: animData.nu,
             };
-  
-            // Set the filtered data in the component's state
+
+            // Combine and organize simulation data chronologically
+            var combinedData = [...simulationData.nu, ...simulationData.pr];
+
+            // Sort the combined data array by time using your custom compareTime function
+            combinedData = combinedData.sort(this.compareTime);
+
             this.setState({
               nodesData,
-              simulationData,
+              simulationData: combinedData,
             });
 
-            this.props.onDataParsed(nodesData, simulationData);
-            
+            console.log(combinedData);
+            this.props.onDataParsed(nodesData, combinedData);
+
           } else {
             console.error('No "anim" object found in the JSON data.');
           }
@@ -46,7 +70,6 @@ class XmlUpload extends Component {
       reader.readAsText(file);
     }
   }
-  
 
   render() {
     return (
@@ -62,3 +85,4 @@ class XmlUpload extends Component {
 }
 
 export default XmlUpload;
+
