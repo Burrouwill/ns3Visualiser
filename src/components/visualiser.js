@@ -58,19 +58,39 @@ function Visualization({ data, maxWidth, maxHeight }) {
       .style('stroke', 'black')
       .style('stroke-width', 2);
 
-    if (data) {
-      // Render nodes or other data on the grid
-      data.nodesData.node.forEach((node) => {
-        const cx = parseFloat(node.$.locX);
-        const cy = parseFloat(node.$.locY);
-
-        svg.append('circle')
-          .attr('cx', centerX + (cx * gridUnitSize))
-          .attr('cy', centerY - (cy * gridUnitSize)) // Invert Y-axis to match the coordinate system
-          .attr('r', 5) // Adjust the size of the circles
-          .attr('fill', 'green');
-      });
-    }
+      if (data) {
+        // Define a color scale for nodes
+        const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+      
+        // Render nodes or other data on the grid
+        data.nodesData.node.forEach((node) => {
+          const cx = parseFloat(node.$.locX);
+          const cy = parseFloat(node.$.locY);
+          const nodeId = node.$.id;
+      
+          // Use the node's ID to select a unique color
+          const nodeColor = colorScale(nodeId);
+      
+          const circleContainer = svg.append('g');
+      
+          // Append a circle to the container
+          circleContainer
+            .append('circle')
+            .attr('cx', centerX + cx)
+            .attr('cy', centerY - cy)
+            .attr('r', 10) // Adjust the size of the circles
+            .attr('fill', nodeColor); // Set the fill color based on the node's ID
+      
+          // Append a title to the container
+          circleContainer
+            .append('title')
+            .text(`Node ID: ${nodeId}`);
+        });
+      }
+      
+      
+      
+      
   }, [data, maxWidth, maxHeight]);
 
   return (
@@ -81,6 +101,7 @@ function Visualization({ data, maxWidth, maxHeight }) {
 }
 
 export default Visualization;
+
 
 
 
