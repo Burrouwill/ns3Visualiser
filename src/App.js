@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { AppBar, Toolbar, Typography, Container, Paper } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, Box, IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+
 import XmlUpload from './components/xmlUpload';
 import Visualisation from './components/visualiser';
 
@@ -17,25 +19,37 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
-      <AppBar position="static" color="primary">
+      <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6">Network Simulation</Typography>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Ns3 Visualiser
+          </Typography>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="md" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-        <Paper elevation={3} style={{ padding: '10px' }}>
+      <Container maxWidth="sm" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+        <Box border={1} borderColor="grey.400" borderRadius={4} p={2}>
           <XmlUpload onDataParsed={handleParsedData} />
-        </Paper>
+        </Box>
       </Container>
 
-      <Container maxWidth="lg" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-        <Paper elevation={3} style={{ padding: '10px' }}>
-          <div className="visualizer-container" style={{ height: '500px', marginTop: '10px' }}>
-            <Visualisation data={parsedData} />
+      <Container maxWidth="sm" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+        <Box border={1} borderColor="grey.400" borderRadius={4} p={2} display="flex" justifyContent="center" alignItems="center">
+          <div className="visualizer-container" style={{ height: '500px' }}>
+            <Visualisation data={parsedData} maxWidth={500} maxHeight={500} />
           </div>
-        </Paper>
+        </Box>
       </Container>
+
 
     </ThemeProvider>
   );
