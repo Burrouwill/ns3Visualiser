@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-function Visualization({ data, maxWidth, maxHeight }) {
+function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
   const svgRef = useRef();
 
   useEffect(() => {
@@ -99,6 +99,11 @@ function Visualization({ data, maxWidth, maxHeight }) {
       console.log(data.simulationData)
       console.log(data.nodesData)
 
+      if (startSimulationFlag) {
+        // Call the startSimulation function when the flag is true
+        startSimulation();
+      }
+
       // Run the simulation
       function startSimulation() {
         data.simulationData.forEach((event) => {
@@ -153,7 +158,7 @@ function Visualization({ data, maxWidth, maxHeight }) {
         circle.attr('cx', centerX + x).attr('cy', centerY - y);
       }
     }
-  }, [data, maxWidth, maxHeight]);
+  }, [data, maxWidth, maxHeight, startSimulationFlag]);
 
   return (
     <div>

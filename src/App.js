@@ -10,12 +10,15 @@ function App() {
   const theme = createTheme();
 
   const [parsedData, setParsedData] = useState(null);
+  const [startSimulationFlag, setStartSimulationFlag] = useState(false); // State variable to control simulation
 
   const handleParsedData = (nodesData, simulationData) => {
     setParsedData({ nodesData, simulationData });
   };
 
-  const startSimulation = Visualisation;
+  const startSimulation = () => {
+    setStartSimulationFlag(true);
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -28,15 +31,14 @@ function App() {
             edge="start"
             color="inherit"
             aria-label="menu"
-            sx={{ mr: 2 }}>
+            sx={{ mr: 2 }}
+          >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Ns3 Visualiser
           </Typography>
-          <Button
-            color="inherit"
-            onClick={startSimulation}>
+          <Button color="inherit" onClick={startSimulation}>
             Start Simulation
           </Button>
         </Toolbar>
@@ -51,16 +53,13 @@ function App() {
       <Container maxWidth="sm" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
         <Box border={1} borderColor="grey.400" borderRadius={4} p={2} display="flex" justifyContent="center" alignItems="center">
           <div className="visualizer-container" style={{ height: '500px' }}>
-            <Visualisation data={parsedData} maxWidth={500} maxHeight={500} />
+            <Visualisation data={parsedData} maxWidth={500} maxHeight={500} startSimulationFlag={startSimulationFlag} />
           </div>
         </Box>
       </Container>
-
-
     </ThemeProvider>
   );
 }
 
 export default App;
-
 
