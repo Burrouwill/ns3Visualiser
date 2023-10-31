@@ -10,7 +10,7 @@ function App() {
   const theme = createTheme();
 
   const [parsedData, setParsedData] = useState(null);
-  const [startSimulationFlag, setStartSimulationFlag] = useState(false); // State variable to control simulation
+  const [startSimulationFlag, setStartSimulationFlag] = useState(false); 
 
   const handleParsedData = (nodesData, simulationData) => {
     setParsedData({ nodesData, simulationData });

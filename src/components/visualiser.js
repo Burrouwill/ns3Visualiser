@@ -7,7 +7,6 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
   useEffect(() => {
     const svg = d3.select(svgRef.current);
 
-
     /***********************
     *   Init Simulation    *
     ***********************/
@@ -105,21 +104,45 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
       }
 
       // Run the simulation
-      function startSimulation() {
-        data.simulationData.forEach((event) => {
-          // Handle nu (Node update) packets: 'c' == color, 's' == size?, 'p' == postional 
+      async function startSimulation() {
+        let currentTime = 0; 
+        for (const event of data.simulationData) {
+          // Extract the time property based on the event type
+          const eventTime = getEventTime(event);
+          if (eventTime !== null) {
+            const timeDifference = eventTime - currentTime;
+            if (timeDifference > 0) {
+              // Introduce a time delay (time step) based on the time difference
+              await sleep(timeDifference);
+            }
+            currentTime = eventTime;
+          }
+          // Handle events 
           if ('$' in event && 'p' in event.$) {
-            // Handle the nu postional packets:
             if (event.$.p === 'p') {
               handleNodeMovement(event);
             }
-            // Handle pr (Connection) packets: 
           } else if (event.type === 'connectionBroken') {
-            //handleConnectionBroken(event);
+            // handleConnectionBroken(event);
           } else if (event.type === 'connectionEstablished') {
-            //handleConnectionEstablished(event);
+            // handleConnectionEstablished(event);
           }
-        });
+        }
+      }
+
+      // Function to extract the time property based on the event type
+      function getEventTime(event) {
+        if ('$' in event && 'fbTx' in event.$) {
+          return parseFloat(event.$.fbTx);
+        } else if ('$' in event && 't' in event.$) {
+          return parseFloat(event.$.t);
+        }
+        return null;
+      }
+
+      // Function to introduce a time delay (time step)
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
       }
 
       // Function to handle connections established
