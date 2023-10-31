@@ -41,24 +41,23 @@ class XmlUpload extends Component {
             };
 
             // Simulation Data
-            const simulationData = {
+            var simulationData = {
               pr: animData.pr,
               nu: animData.nu,
             };
 
             // Combine and organize simulation data chronologically
-            var combinedData = [...simulationData.nu, ...simulationData.pr];
+            simulationData = [...simulationData.nu, ...simulationData.pr];
 
             // Sort the combined data array by time using your custom compareTime function
-            combinedData = combinedData.sort(this.compareTime);
+            simulationData = simulationData.sort(this.compareTime);
 
             this.setState({
               nodesData,
-              simulationData: combinedData,
+              simulationData,
             });
 
-            console.log(combinedData);
-            this.props.onDataParsed(nodesData, combinedData);
+            this.props.onDataParsed(nodesData, simulationData);
 
           } else {
             console.error('No "anim" object found in the JSON data.');

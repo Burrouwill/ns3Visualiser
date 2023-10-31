@@ -58,39 +58,95 @@ function Visualization({ data, maxWidth, maxHeight }) {
       .style('stroke', 'black')
       .style('stroke-width', 2);
 
-      if (data) {
-        // Define a color scale for nodes
-        const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-      
-        // Render nodes or other data on the grid
-        data.nodesData.node.forEach((node) => {
-          const cx = parseFloat(node.$.locX);
-          const cy = parseFloat(node.$.locY);
-          const nodeId = node.$.id;
-      
-          // Use the node's ID to select a unique color
-          const nodeColor = colorScale(nodeId);
-      
-          const circleContainer = svg.append('g');
-      
-          // Append a circle to the container
-          circleContainer
-            .append('circle')
-            .attr('cx', centerX + cx)
-            .attr('cy', centerY - cy)
-            .attr('r', 0.3*gridUnitSize) 
-            .attr('fill', nodeColor); // Set the fill color based on the node's ID
-      
-          // Append a title to the container
-          circleContainer
-            .append('title')
-            .text(`Node ID: ${nodeId}`);
-        });
+    if (data) {
+      // Define a color scale for nodes
+      const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+      // Render nodes or other data on the grid
+      data.nodesData.node.forEach((node) => {
+        const cx = parseFloat(node.$.locX);
+        const cy = parseFloat(node.$.locY);
+        const nodeId = node.$.id;
+
+        // Use the node's ID to select a unique color
+        const nodeColor = colorScale(nodeId);
+
+        const circleContainer = svg.append('g');
+
+        // Append a circle to the container
+        circleContainer
+          .append('circle')
+          .attr('cx', centerX + cx)
+          .attr('cy', centerY - cy)
+          .attr('r', 0.3 * gridUnitSize)
+          .attr('fill', nodeColor); // Set the fill color based on the node's ID
+
+        // Append a title to the container
+        circleContainer
+          .append('title')
+          .text(`Node ID: ${nodeId}`);
+      });
+
+
+
+      console.log(data.simulationData)
+
+      // Function to handle connections established
+      function handleConnectionEstablished(event) {
+        const sourceNodeId = event.sourceNodeId;
+        const targetNodeId = event.targetNodeId;
+
+        // Create a line between the source and target nodes
+        svg.append('line')
+          .attr('x1', /* calculate x position of source node */)
+          .attr('y1', /* calculate y position of source node */)
+          .attr('x2', /* calculate x position of target node */)
+          .attr('y2', /* calculate y position of target node */)
+          .style('stroke', 'green')
+          .style('stroke-width', 2);
+
+        // You can add labels, tooltips, or other visual elements as needed
       }
-      
-      
-      
-      
+
+      // Function to handle connections broken
+      function handleConnectionBroken(event) {
+        // Find and remove the line representing the broken connection
+        svg.select('line')
+          .filter(function (d) {
+            const sourceNodeId = d3.select(this).attr('sourceNodeId');
+            const targetNodeId = d3.select(this).attr('targetNodeId');
+            return sourceNodeId === event.sourceNodeId && targetNodeId === event.targetNodeId;
+          })
+          .remove();
+      }
+
+      // Function to handle node movement
+      function handleNodeMovement(event) {
+
+      }
+
+      // Iterate through the simulation events and call the corresponding handling functions
+      data.simulationData.forEach((event) => {
+        // Handle nu (Node update) packets: 'c' == color, 's' == size?, 'p' == postional 
+        if ('$' in event && 'p' in event.$) {
+          // Handle the nu postional packets:
+          if (event.$.p === 'p'){
+            console.log(event.$.p)
+            handleNodeMovement(event);
+          }
+        // Handle pr (Connection) packets: 
+        } else if (event.type === 'connectionBroken') {
+          handleConnectionBroken(event);
+        } else if (event.type === 'connectionEstablished') {
+          handleConnectionEstablished(event);
+        }
+        
+      });
+    }
+
+
+
+
   }, [data, maxWidth, maxHeight]);
 
   return (
