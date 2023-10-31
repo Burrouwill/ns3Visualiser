@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
-import { AppBar, Toolbar, Typography, Container, Box, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Typography, Container, Box, IconButton, Button } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 import XmlUpload from './components/xmlUpload';
@@ -15,6 +15,8 @@ function App() {
     setParsedData({ nodesData, simulationData });
   };
 
+  const startSimulation = Visualisation;
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -26,13 +28,17 @@ function App() {
             edge="start"
             color="inherit"
             aria-label="menu"
-            sx={{ mr: 2 }}
-          >
+            sx={{ mr: 2 }}>
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Ns3 Visualiser
           </Typography>
+          <Button
+            color="inherit"
+            onClick={startSimulation}>
+            Start Simulation
+          </Button>
         </Toolbar>
       </AppBar>
 

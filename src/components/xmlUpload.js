@@ -6,19 +6,16 @@ class XmlUpload extends Component {
   // Used to order logs of different types in terms of time
   compareTime(a, b) {
     let timeA, timeB;
-  
     if (a && a.$ && 'fbTx' in a.$) {
       timeA = parseFloat(a.$.fbTx);
     } else if (a && a.$ && 't' in a.$) {
       timeA = parseFloat(a.$.t);
     }
-  
     if (b && b.$ && 'fbTx' in b.$) {
       timeB = parseFloat(b.$.fbTx);
     } else if (b && b.$ && 't' in b.$) {
       timeB = parseFloat(b.$.t);
     }
-    
     return timeA - timeB;
   }
   

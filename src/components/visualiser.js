@@ -7,6 +7,11 @@ function Visualization({ data, maxWidth, maxHeight }) {
   useEffect(() => {
     const svg = d3.select(svgRef.current);
 
+
+    /***********************
+    *   Init Simulation    *
+    ***********************/
+
     // Clear the previous visualization
     svg.selectAll('*').remove();
 
@@ -76,10 +81,11 @@ function Visualization({ data, maxWidth, maxHeight }) {
         // Append a circle to the container
         circleContainer
           .append('circle')
+          .attr('nodeId', nodeId)
           .attr('cx', centerX + cx)
           .attr('cy', centerY - cy)
           .attr('r', 0.3 * gridUnitSize)
-          .attr('fill', nodeColor); // Set the fill color based on the node's ID
+          .attr('fill', nodeColor);
 
         // Append a title to the container
         circleContainer
@@ -87,9 +93,29 @@ function Visualization({ data, maxWidth, maxHeight }) {
           .text(`Node ID: ${nodeId}`);
       });
 
-
-
+      /***********************
+      *   Run Simulation    *
+      ***********************/
       console.log(data.simulationData)
+      console.log(data.nodesData)
+
+      // Run the simulation
+      function startSimulation() {
+        data.simulationData.forEach((event) => {
+          // Handle nu (Node update) packets: 'c' == color, 's' == size?, 'p' == postional 
+          if ('$' in event && 'p' in event.$) {
+            // Handle the nu postional packets:
+            if (event.$.p === 'p') {
+              handleNodeMovement(event);
+            }
+            // Handle pr (Connection) packets: 
+          } else if (event.type === 'connectionBroken') {
+            //handleConnectionBroken(event);
+          } else if (event.type === 'connectionEstablished') {
+            //handleConnectionEstablished(event);
+          }
+        });
+      }
 
       // Function to handle connections established
       function handleConnectionEstablished(event) {
@@ -104,8 +130,6 @@ function Visualization({ data, maxWidth, maxHeight }) {
           .attr('y2', /* calculate y position of target node */)
           .style('stroke', 'green')
           .style('stroke-width', 2);
-
-        // You can add labels, tooltips, or other visual elements as needed
       }
 
       // Function to handle connections broken
@@ -122,31 +146,13 @@ function Visualization({ data, maxWidth, maxHeight }) {
 
       // Function to handle node movement
       function handleNodeMovement(event) {
-
+        const x = parseFloat(event.$.x);
+        const y = parseFloat(event.$.y);
+        const nodeId = event.$.id;
+        const circle = svg.select(`circle[nodeId="${nodeId}"]`);
+        circle.attr('cx', centerX + x).attr('cy', centerY - y);
       }
-
-      // Iterate through the simulation events and call the corresponding handling functions
-      data.simulationData.forEach((event) => {
-        // Handle nu (Node update) packets: 'c' == color, 's' == size?, 'p' == postional 
-        if ('$' in event && 'p' in event.$) {
-          // Handle the nu postional packets:
-          if (event.$.p === 'p'){
-            console.log(event.$.p)
-            handleNodeMovement(event);
-          }
-        // Handle pr (Connection) packets: 
-        } else if (event.type === 'connectionBroken') {
-          handleConnectionBroken(event);
-        } else if (event.type === 'connectionEstablished') {
-          handleConnectionEstablished(event);
-        }
-        
-      });
     }
-
-
-
-
   }, [data, maxWidth, maxHeight]);
 
   return (
