@@ -169,14 +169,13 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
             // DA Coords
             .attr('x2', parseFloat(destinationNode.attr('cx')))
             .attr('y2', parseFloat(destinationNode.attr('cy')))
+            // Other Attributes
             .attr('sourceNode', sourceNode.attr('nodeId'))
-            .attr('destinationNode', sourceNode.attr('nodeId'))
+            .attr('destinationNode', destinationNode.attr('nodeId'))
             .style('stroke', 'green')
             .style('stroke-width', 2);
         }
       }
-
-
 
       // Function to handle connections broken
       function handleConnectionBroken(event) {
@@ -197,7 +196,44 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
         const nodeId = event.$.id;
         const circle = svg.select(`circle[nodeId="${nodeId}"]`);
         circle.attr('cx', centerX + x).attr('cy', centerY - y);
+        handleLineMovement(nodeId);
       }
+
+      // Function to correct edge postioning upon node movement
+      function handleLineMovement(nodeId) {
+        const selectedLines = svg.selectAll('line')
+          .filter(function () {
+            const sourceNodeId = d3.select(this).attr('sourceNode');
+            const destinationNodeId = d3.select(this).attr('destinationNode');
+            return sourceNodeId === nodeId || destinationNodeId === nodeId;
+          });
+          
+          selectedLines.each(function () {
+            const line = d3.select(this);
+            const sourceNodeId = line.attr('sourceNode');
+            const destinationNodeId = line.attr('destinationNode');
+          
+
+            if (sourceNodeId === nodeId) {
+              // Update the coordinates x1 and y1 if sourceNode matches nodeId
+              const sourceNode = svg.select(`circle[nodeId="${sourceNodeId}"]`);
+              line
+                .attr('x1', parseFloat(sourceNode.attr('cx')))
+                .attr('y1', parseFloat(sourceNode.attr('cy')))
+            }
+        
+            if (destinationNodeId === nodeId) {
+              // Update the coordinates x2 and y2 if destinationNode matches nodeId
+              const destinationNode = svg.select(`circle[nodeId="${destinationNodeId}"]`);
+              line
+                .attr('x2', parseFloat(destinationNode.attr('cx')))
+                .attr('y2', parseFloat(destinationNode.attr('cy')))
+            }
+          });
+        }
+
+
+
     }
   }, [data, maxWidth, maxHeight, startSimulationFlag]);
 
