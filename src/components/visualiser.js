@@ -90,7 +90,7 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
         const concatenatedIpMac = nonp2plinkproperties.$.ipAddress;
         const [ipv4, MAC] = concatenatedIpMac.split("~");
         // Exclude loopback ipv4 & MAC
-        if (ipv4 !== '127.0.0.1' || MAC !== '00:00:00:00:00:00'){
+        if (ipv4 !== '127.0.0.1' || MAC !== '00:00:00:00:00:00') {
           const circle = svg.select(`circle[nodeId="${nodeId}"]`);
           circle
             .attr('ipv4', ipv4)
@@ -101,8 +101,6 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
       /***********************
       *   Run Simulation    *
       ***********************/
-      console.log(data.simulationData)
-      console.log(data.nodesData)
 
       if (startSimulationFlag) {
         // Call the startSimulation function when the flag is true
@@ -111,7 +109,7 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
 
       // Run the simulation
       async function startSimulation() {
-        let currentTime = 0; 
+        let currentTime = 0;
         for (const event of data.simulationData) {
           // Extract the time property based on the event type
           const eventTime = getEventTime(event);
@@ -131,7 +129,7 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
           } else if (event.type === 'connectionBroken') {
             // handleConnectionBroken(event);
           } else if ('$' in event && 'meta-info' in event.$ && event.$['meta-info'].includes('PeerLinkConfirmStart')) {
-            //handleConnectionEstablished(event);
+            handleConnectionEstablished(event);
           }
         }
       }
@@ -151,20 +149,34 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
         return new Promise(resolve => setTimeout(resolve, ms));
       }
 
-      // Function to handle connections established
+      // Function to handle connections established 
       function handleConnectionEstablished(event) {
-        const sourceNodeId = event.sourceNodeId;
-        const targetNodeId = event.targetNodeId;
-        // Create a line between the source and target nodes
-        svg.append('line')
-          .attr('x1', /* calculate x position of source node */)
-          .attr('y1', /* calculate y position of source node */)
-          .attr('x2', /* calculate x position of target node */)
-          .attr('y2', /* calculate y position of target node */)
-          .style('stroke', 'green')
-          .style('stroke-width', 2);
-          // Should this be adding some stuff to a collection of all connections perhaps? So we can do some stats / determine hop neighbours later on? 
+        const metaInfo = event.$['meta-info'];
+        const regex = /DA=([\w:]+), SA=([\w:]+)/;
+        const match = metaInfo.match(regex);
+
+        if (match) {
+          const destinationMacAddress = match[2]; //(DA & SA flipped as we are parsing the return packet)
+          const sourceMacAddress = match[1];
+
+          const sourceNode = svg.select(`circle[MAC="${sourceMacAddress}"]`);
+          const destinationNode = svg.select(`circle[MAC="${destinationMacAddress}"]`);
+
+          svg.append('line')
+            // SA Coords
+            .attr('x1', parseFloat(sourceNode.attr('cx')))
+            .attr('y1', parseFloat(sourceNode.attr('cy')))
+            // DA Coords
+            .attr('x2', parseFloat(destinationNode.attr('cx')))
+            .attr('y2', parseFloat(destinationNode.attr('cy')))
+            .attr('sourceNode', sourceNode.attr('nodeId'))
+            .attr('destinationNode', sourceNode.attr('nodeId'))
+            .style('stroke', 'green')
+            .style('stroke-width', 2);
+        }
       }
+
+
 
       // Function to handle connections broken
       function handleConnectionBroken(event) {
