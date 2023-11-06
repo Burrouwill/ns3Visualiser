@@ -63,21 +63,14 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
       .style('stroke-width', 2);
 
     if (data) {
-      // Define a color scale for nodes
+      // DRAW NODES
       const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-
-      // Render nodes or other data on the grid
       data.nodesData.node.forEach((node) => {
         const cx = parseFloat(node.$.locX);
         const cy = parseFloat(node.$.locY);
         const nodeId = node.$.id;
-
-        // Use the node's ID to select a unique color
         const nodeColor = colorScale(nodeId);
-
         const circleContainer = svg.append('g');
-
-        // Append a circle to the container
         circleContainer
           .append('circle')
           .attr('nodeId', nodeId)
@@ -85,11 +78,24 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
           .attr('cy', centerY - cy)
           .attr('r', 0.3 * gridUnitSize)
           .attr('fill', nodeColor);
-
         // Append a title to the container
         circleContainer
           .append('title')
           .text(`Node ID: ${nodeId}`);
+      });
+
+      // ASSIGN MAC & IP's to Nodes/Circles
+      data.nodesData.nonp2plinkproperties.forEach((nonp2plinkproperties) => {
+        const nodeId = nonp2plinkproperties.$.id;
+        const concatenatedIpMac = nonp2plinkproperties.$.ipAddress;
+        const [ipv4, MAC] = concatenatedIpMac.split("~");
+        // Exclude loopback ipv4 & MAC
+        if (ipv4 !== '127.0.0.1' || MAC !== '00:00:00:00:00:00'){
+          const circle = svg.select(`circle[nodeId="${nodeId}"]`);
+          circle
+            .attr('ipv4', ipv4)
+            .attr('MAC', MAC);
+        }
       });
 
       /***********************
@@ -124,8 +130,8 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
             }
           } else if (event.type === 'connectionBroken') {
             // handleConnectionBroken(event);
-          } else if (event.type === 'connectionEstablished') {
-            // handleConnectionEstablished(event);
+          } else if ('$' in event && 'meta-info' in event.$ && event.$['meta-info'].includes('PeerLinkConfirmStart')) {
+            //handleConnectionEstablished(event);
           }
         }
       }
@@ -149,7 +155,6 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
       function handleConnectionEstablished(event) {
         const sourceNodeId = event.sourceNodeId;
         const targetNodeId = event.targetNodeId;
-
         // Create a line between the source and target nodes
         svg.append('line')
           .attr('x1', /* calculate x position of source node */)
@@ -158,6 +163,7 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
           .attr('y2', /* calculate y position of target node */)
           .style('stroke', 'green')
           .style('stroke-width', 2);
+          // Should this be adding some stuff to a collection of all connections perhaps? So we can do some stats / determine hop neighbours later on? 
       }
 
       // Function to handle connections broken
