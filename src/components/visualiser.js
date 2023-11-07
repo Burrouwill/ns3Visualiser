@@ -103,7 +103,6 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
       ***********************/
 
       if (startSimulationFlag) {
-        // Call the startSimulation function when the flag is true
         startSimulation();
       }
 
@@ -121,13 +120,13 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
             }
             currentTime = eventTime;
           }
-          // Handle events 
+          // Handle event packets
           if ('$' in event && 'p' in event.$) {
             if (event.$.p === 'p') {
               handleNodeMovement(event);
             }
-          } else if (event.type === 'connectionBroken') {
-            // handleConnectionBroken(event);
+          } else if ('$' in event && 'meta-info' in event.$ && event.$['meta-info'].includes('PeerLinkCloseStart')) {
+            handleConnectionBroken(event);
           } else if ('$' in event && 'meta-info' in event.$ && event.$['meta-info'].includes('PeerLinkConfirmStart')) {
             handleConnectionEstablished(event);
           }
@@ -154,39 +153,49 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
         const metaInfo = event.$['meta-info'];
         const regex = /DA=([\w:]+), SA=([\w:]+)/;
         const match = metaInfo.match(regex);
-
         if (match) {
           const destinationMacAddress = match[2]; //(DA & SA flipped as we are parsing the return packet)
           const sourceMacAddress = match[1];
-
           const sourceNode = svg.select(`circle[MAC="${sourceMacAddress}"]`);
           const destinationNode = svg.select(`circle[MAC="${destinationMacAddress}"]`);
-
-          svg.append('line')
-            // SA Coords
-            .attr('x1', parseFloat(sourceNode.attr('cx')))
-            .attr('y1', parseFloat(sourceNode.attr('cy')))
-            // DA Coords
-            .attr('x2', parseFloat(destinationNode.attr('cx')))
-            .attr('y2', parseFloat(destinationNode.attr('cy')))
-            // Other Attributes
-            .attr('sourceNode', sourceNode.attr('nodeId'))
-            .attr('destinationNode', destinationNode.attr('nodeId'))
-            .style('stroke', 'green')
-            .style('stroke-width', 2);
+          if (!lineExists(sourceNode.attr('nodeId'), destinationNode.attr('nodeId'))) {
+            svg.append('line')
+              // SA Coords
+              .attr('x1', parseFloat(sourceNode.attr('cx')))
+              .attr('y1', parseFloat(sourceNode.attr('cy')))
+              // DA Coords
+              .attr('x2', parseFloat(destinationNode.attr('cx')))
+              .attr('y2', parseFloat(destinationNode.attr('cy')))
+              // Other Attributes
+              .attr('sourceNodeId', sourceNode.attr('nodeId'))
+              .attr('destinationNodeId', destinationNode.attr('nodeId'))
+              .style('stroke', 'blue')
+              .style('stroke-width', 1);
+          }
         }
       }
 
       // Function to handle connections broken
       function handleConnectionBroken(event) {
-        // Find and remove the line representing the broken connection
-        svg.select('line')
-          .filter(function (d) {
-            const sourceNodeId = d3.select(this).attr('sourceNodeId');
-            const targetNodeId = d3.select(this).attr('targetNodeId');
-            return sourceNodeId === event.sourceNodeId && targetNodeId === event.targetNodeId;
-          })
-          .remove();
+        const metaInfo = event.$['meta-info'];
+        const regex = /DA=([\w:]+), SA=([\w:]+)/;
+        const match = metaInfo.match(regex);
+        if (match){
+          const destinationMacAddress = match[1]; 
+          const sourceMacAddress = match[2];
+          const sourceNode = svg.select(`circle[MAC="${sourceMacAddress}"]`);
+          const destinationNode = svg.select(`circle[MAC="${destinationMacAddress}"]`);
+          if (lineExists(sourceNode.attr('nodeId'), destinationNode.attr('nodeId'))){
+           var linesToBeRemoved = svg.select('line')
+            .filter(function () {
+              const lineSourceNodeId = d3.select(this).attr('sourceNodeId');
+              const lineDestinationNodeId = d3.select(this).attr('destinationNodeId');
+              return sourceNode.attr('nodeId') === lineSourceNodeId && destinationNode.attr('nodeId') === lineDestinationNodeId;
+            })
+            .remove();
+            console.log(linesToBeRemoved)
+          }
+        }
       }
 
       // Function to handle node movement
@@ -199,41 +208,45 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
         handleLineMovement(nodeId);
       }
 
+      // Function to determine if a line already exists between two nodes
+      function lineExists(sourceNodeId, destinationNodeId) {
+        const matchingLines = svg.selectAll('line')
+          .filter(function () {
+            const lineSourceNodeId = d3.select(this).attr('sourceNodeId');
+            const lineDestinationNodeId = d3.select(this).attr('destinationNodeId');
+            return (sourceNodeId === lineSourceNodeId && destinationNodeId === lineDestinationNodeId) ||
+                   (sourceNodeId === lineDestinationNodeId && destinationNodeId === lineSourceNodeId);
+          });
+        return matchingLines.empty() ? null : matchingLines.node();
+      }
+      
+
       // Function to correct edge postioning upon node movement
       function handleLineMovement(nodeId) {
         const selectedLines = svg.selectAll('line')
           .filter(function () {
-            const sourceNodeId = d3.select(this).attr('sourceNode');
-            const destinationNodeId = d3.select(this).attr('destinationNode');
+            const sourceNodeId = d3.select(this).attr('sourceNodeId');
+            const destinationNodeId = d3.select(this).attr('destinationNodeId');
             return sourceNodeId === nodeId || destinationNodeId === nodeId;
           });
-          
-          selectedLines.each(function () {
-            const line = d3.select(this);
-            const sourceNodeId = line.attr('sourceNode');
-            const destinationNodeId = line.attr('destinationNode');
-          
-
-            if (sourceNodeId === nodeId) {
-              // Update the coordinates x1 and y1 if sourceNode matches nodeId
-              const sourceNode = svg.select(`circle[nodeId="${sourceNodeId}"]`);
-              line
-                .attr('x1', parseFloat(sourceNode.attr('cx')))
-                .attr('y1', parseFloat(sourceNode.attr('cy')))
-            }
-        
-            if (destinationNodeId === nodeId) {
-              // Update the coordinates x2 and y2 if destinationNode matches nodeId
-              const destinationNode = svg.select(`circle[nodeId="${destinationNodeId}"]`);
-              line
-                .attr('x2', parseFloat(destinationNode.attr('cx')))
-                .attr('y2', parseFloat(destinationNode.attr('cy')))
-            }
-          });
-        }
-
-
-
+        selectedLines.each(function () {
+          const line = d3.select(this);
+          const sourceNodeId = line.attr('sourceNodeId');
+          const destinationNodeId = line.attr('destinationNodeId');
+          if (sourceNodeId === nodeId) {
+            const sourceNode = svg.select(`circle[nodeId="${sourceNodeId}"]`);
+            line
+              .attr('x1', parseFloat(sourceNode.attr('cx')))
+              .attr('y1', parseFloat(sourceNode.attr('cy')))
+          }
+          if (destinationNodeId === nodeId) {
+            const destinationNode = svg.select(`circle[nodeId="${destinationNodeId}"]`);
+            line
+              .attr('x2', parseFloat(destinationNode.attr('cx')))
+              .attr('y2', parseFloat(destinationNode.attr('cy')))
+          }
+        });
+      }
     }
   }, [data, maxWidth, maxHeight, startSimulationFlag]);
 
