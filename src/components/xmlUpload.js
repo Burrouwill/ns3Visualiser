@@ -35,6 +35,7 @@ class XmlUpload extends Component {
             const nodesData = {
               node: animData.node,
               nonp2plinkproperties: animData.nonp2plinkproperties,
+              nodeview: animData.NodeView
             };
 
             // Simulation Data

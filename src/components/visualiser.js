@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import NodeView from '../models/nodeView';
 
 function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
   const svgRef = useRef();
@@ -97,6 +98,30 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
             .attr('MAC', MAC);
         }
       });
+      // constructor(id, isAP, confidence, connections, components)
+
+      // PARSE NODEVIEW DATA & ASSIGN TO NODES
+      data.nodesData.nodeview.forEach((nodeview) => {
+        //console.log(nodeview)
+
+        // Instantiate NodeView
+        let newNodeView = new NodeView();
+
+        // Parse MAC
+        const macAddressRegex = /([A-Za-z0-9]+(:[A-Za-z0-9]+)+)$/;
+
+        const matches = nodeview.$.id.match(macAddressRegex);
+
+        if (matches) {
+          const macAddress = matches[0];
+          console.log(macAddress); // Output: 00:00:00:00:00:01
+        } else {
+          console.log("No MAC address found in the provided text.");
+        }
+
+
+
+      })
 
       /***********************
       *   Run Simulation    *
@@ -180,20 +205,20 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
         const metaInfo = event.$['meta-info'];
         const regex = /DA=([\w:]+), SA=([\w:]+)/;
         const match = metaInfo.match(regex);
-        if (match){
-          const destinationMacAddress = match[1]; 
+        if (match) {
+          const destinationMacAddress = match[1];
           const sourceMacAddress = match[2];
           const sourceNode = svg.select(`circle[MAC="${sourceMacAddress}"]`);
           const destinationNode = svg.select(`circle[MAC="${destinationMacAddress}"]`);
-          if (lineExists(sourceNode.attr('nodeId'), destinationNode.attr('nodeId'))){
-           var linesToBeRemoved = svg.select('line')
-            .filter(function () {
-              const lineSourceNodeId = d3.select(this).attr('sourceNodeId');
-              const lineDestinationNodeId = d3.select(this).attr('destinationNodeId');
-              return sourceNode.attr('nodeId') === lineSourceNodeId && destinationNode.attr('nodeId') === lineDestinationNodeId;
-            })
-            .remove();
-            console.log(linesToBeRemoved)
+          if (lineExists(sourceNode.attr('nodeId'), destinationNode.attr('nodeId'))) {
+            var linesToBeRemoved = svg.select('line')
+              .filter(function () {
+                const lineSourceNodeId = d3.select(this).attr('sourceNodeId');
+                const lineDestinationNodeId = d3.select(this).attr('destinationNodeId');
+                return sourceNode.attr('nodeId') === lineSourceNodeId && destinationNode.attr('nodeId') === lineDestinationNodeId;
+              })
+              .remove();
+            // This needs completing - Doesnt work atm due to lineSource/Dest being null
           }
         }
       }
@@ -215,11 +240,11 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
             const lineSourceNodeId = d3.select(this).attr('sourceNodeId');
             const lineDestinationNodeId = d3.select(this).attr('destinationNodeId');
             return (sourceNodeId === lineSourceNodeId && destinationNodeId === lineDestinationNodeId) ||
-                   (sourceNodeId === lineDestinationNodeId && destinationNodeId === lineSourceNodeId);
+              (sourceNodeId === lineDestinationNodeId && destinationNodeId === lineSourceNodeId);
           });
         return matchingLines.empty() ? null : matchingLines.node();
       }
-      
+
 
       // Function to correct edge postioning upon node movement
       function handleLineMovement(nodeId) {
