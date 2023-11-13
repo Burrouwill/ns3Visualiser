@@ -106,6 +106,7 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
 
         // Instantiate NodeView
         let newNodeView = new NodeView();
+
         // Parse MAC (id)
         const macAddress = parseMACAddress(nodeview.$.id);
         if (macAddress) {
@@ -132,13 +133,22 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
         newNodeView.setConnections(newConnections);
 
         // Parse components
-
-
+        let newComponents = [];
+        nodeview.components.forEach((componentGroup) => {{
+          componentGroup.component.forEach((nodeGroup) => {
+            let newComponent = new NodeView.Component()
+            nodeGroup.node.forEach((node) => {
+              const nodeMacAddress = parseMACAddress(node.$.id)
+              newComponent.addNode(nodeMacAddress);
+            });
+            newComponents.push(newComponent);
+          });
+        }});
+        newNodeView.setComponents(newComponents);
         console.log(newNodeView)
+      });
 
-
-      })
-
+      // Returns the MAC address from the parsed Node view object: "02-06-00:00:00:00:00:04" --> "00:00:00:00:00:04"
       function parseMACAddress(nodeId) {
         const macAddressRegex = /([A-Za-z0-9]+(:[A-Za-z0-9]+)+)$/;
         const matches = nodeId.match(macAddressRegex);

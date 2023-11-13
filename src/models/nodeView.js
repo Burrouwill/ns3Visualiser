@@ -88,17 +88,22 @@ class NodeView {
 
     static Component = class Component {
         constructor(nodes) {
-            this.nodes = nodes;
+            this.nodes = nodes || []; 
         }
-
+    
         getNodes() {
             return this.nodes;
         }
-
+    
         setNodes(newNodes) {
             this.nodes = newNodes;
         }
+    
+        addNode(newNode) {
+            this.nodes.push(newNode);
+        }
     };
+    
 }
 
 
