@@ -98,30 +98,57 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
             .attr('MAC', MAC);
         }
       });
-      // constructor(id, isAP, confidence, connections, components)
 
       // PARSE NODEVIEW DATA & ASSIGN TO NODES
       data.nodesData.nodeview.forEach((nodeview) => {
+
         //console.log(nodeview)
 
         // Instantiate NodeView
         let newNodeView = new NodeView();
+        // Parse MAC (id)
+        const macAddress = parseMACAddress(nodeview.$.id);
+        if (macAddress) {
+            newNodeView.setId(macAddress);
+        } 
 
-        // Parse MAC
-        const macAddressRegex = /([A-Za-z0-9]+(:[A-Za-z0-9]+)+)$/;
+        // Parse isAP
+        newNodeView.setIsAP(nodeview.$.isAP);
 
-        const matches = nodeview.$.id.match(macAddressRegex);
+        // Parse confidence
+        newNodeView.setConfidence(nodeview.$.confidence);
 
-        if (matches) {
-          const macAddress = matches[0];
-          console.log(macAddress); // Output: 00:00:00:00:00:01
-        } else {
-          console.log("No MAC address found in the provided text.");
-        }
+        // Parse connection Objects
+        let newConnections = [];
+        nodeview.connections.forEach((connectionGroup) => {
+          connectionGroup.connection.forEach((connection) => {
+            const fromMacAddress = parseMACAddress(connection.$.from);
+            const toMacAddress = parseMACAddress(connection.$.to);
+            const hop = connection.$.hop;
+            let newConnection = new NodeView.Connection(fromMacAddress,toMacAddress,hop);
+            newConnections.push(newConnection);
+          });
+        });
+        newNodeView.setConnections(newConnections);
 
+        // Parse components
+
+
+        console.log(newNodeView)
 
 
       })
+
+      function parseMACAddress(nodeId) {
+        const macAddressRegex = /([A-Za-z0-9]+(:[A-Za-z0-9]+)+)$/;
+        const matches = nodeId.match(macAddressRegex);
+        if (matches) {
+          return matches[0];
+        } else {
+          console.log("No MAC address found in the provided text.");
+          return null; 
+        }
+      }
 
       /***********************
       *   Run Simulation    *

@@ -1,3 +1,10 @@
+/**
+ * Class to represent the NodeView parsed in from XML.
+ * 
+ * - id == MAC address of node 
+ * - NodeView object is stored as a field of d3 circle/node objects within visualiser
+ * 
+ */
 class NodeView {
     constructor(id, isAP, confidence, connections, components) {
         this.setId(id);
@@ -46,6 +53,53 @@ class NodeView {
     setComponents(newComponents) {
         this._components = newComponents;
     }
+
+    static Connection = class Connection {
+        constructor(from, to, hop) {
+            this.from = from;
+            this.to = to;
+            this.hop = hop;
+        }
+
+        getFrom() {
+            return this.from;
+        }
+
+        setFrom(newFrom) {
+            this.from = newFrom;
+        }
+
+        getTo() {
+            return this.to;
+        }
+
+        setTo(newTo) {
+            this.to = newTo;
+        }
+
+        getHop() {
+            return this.hop;
+        }
+
+        setHop(newHop) {
+            this.hop = newHop;
+        }
+    };
+
+    static Component = class Component {
+        constructor(nodes) {
+            this.nodes = nodes;
+        }
+
+        getNodes() {
+            return this.nodes;
+        }
+
+        setNodes(newNodes) {
+            this.nodes = newNodes;
+        }
+    };
 }
+
 
 export default NodeView;
