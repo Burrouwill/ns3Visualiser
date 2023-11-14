@@ -101,24 +101,17 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
 
       // PARSE NODEVIEW DATA & ASSIGN TO NODES
       data.nodesData.nodeview.forEach((nodeview) => {
-
-        //console.log(nodeview)
-
         // Instantiate NodeView
         let newNodeView = new NodeView();
-
         // Parse MAC (id)
         const macAddress = parseMACAddress(nodeview.$.id);
         if (macAddress) {
-            newNodeView.setId(macAddress);
-        } 
-
+          newNodeView.setId(macAddress);
+        }
         // Parse isAP
         newNodeView.setIsAP(nodeview.$.isAP);
-
         // Parse confidence
         newNodeView.setConfidence(nodeview.$.confidence);
-
         // Parse connection Objects
         let newConnections = [];
         nodeview.connections.forEach((connectionGroup) => {
@@ -126,26 +119,34 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
             const fromMacAddress = parseMACAddress(connection.$.from);
             const toMacAddress = parseMACAddress(connection.$.to);
             const hop = connection.$.hop;
-            let newConnection = new NodeView.Connection(fromMacAddress,toMacAddress,hop);
+            let newConnection = new NodeView.Connection(fromMacAddress, toMacAddress, hop);
             newConnections.push(newConnection);
           });
         });
         newNodeView.setConnections(newConnections);
-
         // Parse components
         let newComponents = [];
-        nodeview.components.forEach((componentGroup) => {{
-          componentGroup.component.forEach((nodeGroup) => {
-            let newComponent = new NodeView.Component()
-            nodeGroup.node.forEach((node) => {
-              const nodeMacAddress = parseMACAddress(node.$.id)
-              newComponent.addNode(nodeMacAddress);
+        nodeview.components.forEach((componentGroup) => {
+          {
+            componentGroup.component.forEach((nodeGroup) => {
+              let newComponent = new NodeView.Component()
+              nodeGroup.node.forEach((node) => {
+                const nodeMacAddress = parseMACAddress(node.$.id)
+                newComponent.addNode(nodeMacAddress);
+              });
+              newComponents.push(newComponent);
             });
-            newComponents.push(newComponent);
-          });
-        }});
+          }
+        });
         newNodeView.setComponents(newComponents);
-        console.log(newNodeView)
+        
+        // ADD NODE VIEW TO D3 NODE (Assuming unique MAC's)
+        const circle = filterCircleByMac(newNodeView);
+        if (circle){
+          circle
+            .attr('nodeView',newNodeView)
+        }
+        console.log(circle)
       });
 
       // Returns the MAC address from the parsed Node view object: "02-06-00:00:00:00:00:04" --> "00:00:00:00:00:04"
@@ -156,8 +157,17 @@ function Visualization({ data, maxWidth, maxHeight, startSimulationFlag }) {
           return matches[0];
         } else {
           console.log("No MAC address found in the provided text.");
-          return null; 
+          return null;
         }
+      }
+
+      // Returns the Circle/Node with same MAC address as nodeView
+      function filterCircleByMac(newNodeView) {
+        return svg.selectAll('circle')
+          .filter(function () {
+            const macAddress = d3.select(this).attr('MAC');
+            return macAddress === newNodeView.getId();
+          });
       }
 
       /***********************

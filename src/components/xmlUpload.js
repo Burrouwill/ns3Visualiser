@@ -47,7 +47,7 @@ class XmlUpload extends Component {
             // Combine and organize simulation data chronologically
             simulationData = [...simulationData.nu, ...simulationData.pr];
 
-            // Sort the combined data array by time using your custom compareTime function
+            // Sort the combined data array by time 
             simulationData = simulationData.sort(this.compareTime);
 
             this.setState({
